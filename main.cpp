@@ -54,6 +54,32 @@ void do_send(osjob_t *j);
 // Callback de evento: todo evento do LoRaAN irá chamar essa
 // callback, de forma que seja possível saber o status da
 // comunicação com o gateway LoRaWAN.
+
+uint8_t encodePayload(){
+    uint8_t payload[4];
+    float humidity = dht.readHumidity();
+    float temperature = dht.readTemperature();
+
+    if(0 < temperature < 100){
+        temperature = temperature * 100;
+    }
+
+    if(0 < humidity < 100){
+        humidity = humidity * 100;
+    }
+
+    uint lng = temperature;
+    uint lng2 = humidity;
+
+    payload[0] = highByte(lng2);
+    payload[1] = lowByte(lng2);
+    payload[2] = highByte(lng);
+    payload[3] = lowByte(lng);
+
+    return payload[4];
+
+}
+
 void onEvent(ev_t ev)
 {
     Serial.print(os_getTime());
@@ -145,24 +171,39 @@ void do_send(osjob_t *j)
     }
     else{
         uint8_t payload[4];
-        //uint32_t humidity = dht.readHumidity(false) * 100;
-        float temperature = dht.readTemperature();
 
-        Serial.println(temperature);
+        payload[4] = encodePayload();
 
-        if(0 < temperature < 100){
-            temperature = temperature * 100;
-        }
+        //float humidity = dht.readHumidity();
+        //float temperature = dht.readTemperature();
 
-        uint lng = temperature;
-        payload[0] = (byte) ((lng & 0xFF000000) >> 24 );
-        payload[1] = (byte) ((lng & 0x00FF0000) >> 16 );
-        payload[2] = (byte) ((lng & 0x0000FF00) >> 8  );
-        payload[3] = (byte) ((lng & 0X000000FF)       );
-        Serial.println(payload[0]);
-        Serial.println(payload[1]);
-        Serial.println(payload[2]);
-        Serial.println(payload[3]);
+        //Serial.println(temperature);
+        //Serial.println(humidity);
+
+        //if(0 < temperature < 100){
+        //    temperature = temperature * 100;
+        //}
+
+        //if(0 < humidity < 100){
+        //    humidity = humidity * 100;
+        //}
+
+        //uint lng = temperature;
+        //uint lng2 = humidity;
+        //Serial.println(lng2);
+
+        //payload[0] = highByte(lng2);
+        //payload[1] = lowByte(lng2);
+        //payload[2] = highByte(lng);
+        //payload[3] = lowByte(lng);
+        //payload[0] = byte ( (lng2 & 0xFF000000) >> 24);
+        //payload[1] = byte( (lng2 & 0x00FF0000) >> 16);
+        //payload[2] = byte( (lng & 0x0000FF00) >> 8);
+        //payload[3] = byte( (lng & 0X000000FF));
+        //Serial.println(payload[0]);
+        //Serial.println(payload[1]);
+        //Serial.println(payload[2]);
+        //Serial.println(payload[3]);
         
         //envio
         LMIC_setTxData2(1, payload, sizeof(payload), 0);
