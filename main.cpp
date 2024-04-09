@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-const int pinoDHT = 13;
+const int pinoDHT = 17;
 
 DHT dht{pinoDHT, DHT11};
 
@@ -55,30 +55,50 @@ void do_send(osjob_t *j);
 // callback, de forma que seja possível saber o status da
 // comunicação com o gateway LoRaWAN.
 
-uint8_t encodePayload(){
-    uint8_t payload[4];
-    float humidity = dht.readHumidity();
-    float temperature = dht.readTemperature();
+//uint8_t encodePayload(){
+//    uint8_t payload[4];
+//    float humidity = dht.readHumidity();
+//    float temperature = dht.readTemperature();
+//
+//    if(0 < temperature < 100){
+//        temperature = temperature * 100;
+//    }
+//
+//    if(0 < humidity < 100){
+//        humidity = humidity * 100;
+//    }
+//
+//    uint lng = temperature;
+//    uint lng2 = humidity;
+//
+//    payload[0] = highByte(lng2);
+//    payload[1] = lowByte(lng2);
+//    payload[2] = highByte(lng);
+//    payload[3] = lowByte(lng);
+//
+//    return payload[4];
+//
+//}
 
-    if(0 < temperature < 100){
-        temperature = temperature * 100;
-    }
+//float getTemperature(){
+//    float temperature = dht.readTemperature();
+//
+//    if(0 < temperature < 100){
+//        temperature = temperature * 100;
+//    }
+//
+//    return temperature;
+//}
 
-    if(0 < humidity < 100){
-        humidity = humidity * 100;
-    }
-
-    uint lng = temperature;
-    uint lng2 = humidity;
-
-    payload[0] = highByte(lng2);
-    payload[1] = lowByte(lng2);
-    payload[2] = highByte(lng);
-    payload[3] = lowByte(lng);
-
-    return payload[4];
-
-}
+//float getHumidity(){
+//    float humidity = dht.readHumidity();
+//
+//    if(0 < humidity < 100){
+//        humidity = humidity * 100;
+//    }
+//
+//    return humidity;
+//}
 
 void onEvent(ev_t ev)
 {
@@ -172,38 +192,47 @@ void do_send(osjob_t *j)
     else{
         uint8_t payload[4];
 
-        payload[4] = encodePayload();
+        float humidity = dht.readHumidity();
+        float temperature = dht.readTemperature();
 
-        //float humidity = dht.readHumidity();
-        //float temperature = dht.readTemperature();
+        delay(2000);
 
-        //Serial.println(temperature);
-        //Serial.println(humidity);
+        Serial.println(temperature);
+        Serial.println(humidity);
 
-        //if(0 < temperature < 100){
-        //    temperature = temperature * 100;
-        //}
+        if(0 < temperature < 100){
+            temperature = temperature * 100;
+        }
 
-        //if(0 < humidity < 100){
-        //    humidity = humidity * 100;
-        //}
+        if(0 < humidity < 100){
+            humidity = humidity * 100;
+        }
 
-        //uint lng = temperature;
-        //uint lng2 = humidity;
-        //Serial.println(lng2);
+        //float humidity;
+        //float temperature;
 
-        //payload[0] = highByte(lng2);
-        //payload[1] = lowByte(lng2);
-        //payload[2] = highByte(lng);
-        //payload[3] = lowByte(lng);
+        //temperature = getTemperature();
+        //humidity = getHumidity();
+
+        uint lng = temperature;
+        uint lng2 = humidity;
+
+        Serial.println(lng2);
+
+        payload[0] = highByte(lng2);
+        payload[1] = lowByte(lng2);
+        payload[2] = highByte(lng);
+        payload[3] = lowByte(lng);
+
         //payload[0] = byte ( (lng2 & 0xFF000000) >> 24);
         //payload[1] = byte( (lng2 & 0x00FF0000) >> 16);
         //payload[2] = byte( (lng & 0x0000FF00) >> 8);
         //payload[3] = byte( (lng & 0X000000FF));
-        //Serial.println(payload[0]);
-        //Serial.println(payload[1]);
-        //Serial.println(payload[2]);
-        //Serial.println(payload[3]);
+
+        Serial.println(payload[0]);
+        Serial.println(payload[1]);
+        Serial.println(payload[2]);
+        Serial.println(payload[3]);
         
         //envio
         LMIC_setTxData2(1, payload, sizeof(payload), 0);
@@ -223,6 +252,8 @@ void setup()
 
     Serial.begin(9600);
     Serial.println(F("Starting"));
+
+    dht.begin();
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
